@@ -1,4 +1,3 @@
-# src/controllers/auth_controller.py
 from fastapi import HTTPException, Depends
 from src.models.user import User, UserCreate, UserResponse
 from src.config.mongodb import MongoDB
@@ -31,7 +30,7 @@ class AuthController:
     @staticmethod
     async def register(user_data: UserCreate) -> AuthResponse:
         try:
-            collection = MongoDB.get_collection("users")
+            collection = await MongoDB.get_collection("users")  # Await get_collection
             if await collection.find_one({"email": user_data.email}):
                 raise HTTPException(status_code=400, detail="User with this email already exists")
             
@@ -70,7 +69,7 @@ class AuthController:
     async def login(email: str, password: str) -> AuthResponse:
         try:
             print("Login attempt for email:", email)
-            collection = MongoDB.get_collection("users")
+            collection = await MongoDB.get_collection("users")  # Await get_collection
             print("Collection accessed")
             user = await collection.find_one({"email": email})
             print("User query result:", user)

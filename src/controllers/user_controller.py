@@ -29,7 +29,7 @@ class UserController:
         if userId != current_user:
             raise HTTPException(status_code=403, detail="Not authorized to access this user")
         
-        collection = MongoDB.get_collection("users")
+        collection = await MongoDB.get_collection("users")  # Await get_collection
         user = await collection.find_one({"_id": userId})
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
@@ -47,7 +47,7 @@ class UserController:
         if userId != current_user:
             raise HTTPException(status_code=403, detail="Not authorized to update this user")
         
-        collection = MongoDB.get_collection("users")
+        collection = await MongoDB.get_collection("users")  # Await get_collection
         user = await collection.find_one({"_id": userId})
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
@@ -81,7 +81,7 @@ class UserController:
         if userId != current_user:
             raise HTTPException(status_code=403, detail="Not authorized to access this user's credits")
         
-        collection = MongoDB.get_collection("users")
+        collection = await MongoDB.get_collection("users")  # Await get_collection
         user = await collection.find_one({"_id": userId}, {"credits": 1})  # Project only credits
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
