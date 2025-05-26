@@ -7,8 +7,13 @@ class MongoDB:
 
     @classmethod
     async def connect(cls):
-        cls.client = AsyncIOMotorClient(env_config.MONGO_URI)
-        cls.db = cls.client[env_config.DATABASE_NAME]
+        try:
+            cls.client = AsyncIOMotorClient(env_config.MONGO_URI)
+            cls.db = cls.client[env_config.DATABASE_NAME]
+            print("MongoDB connected successfully")
+        except Exception as e:
+            print(f"Failed to connect to MongoDB: {str(e)}")
+            raise Exception(f"MongoDB connection failed: {str(e)}")
 
     @classmethod
     async def close(cls):
