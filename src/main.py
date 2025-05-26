@@ -10,7 +10,9 @@ app.include_router(user_router)
 
 @app.on_event("startup")
 async def startup_event():
+    print('trying to connect to MongoDB...')
     await MongoDB.connect()
+    print('MongoDB connected successfully')
 
 @app.on_event("shutdown")
 async def shutdown_event():
