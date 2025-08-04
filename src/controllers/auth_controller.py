@@ -90,7 +90,14 @@ class AuthController:
             print("Collection accessed")
             user = await collection.find_one({"email": email})
             print("User query result:", user)
-            if not user or not pwd_context.verify(password, user["password"]):
+            if not user:
+                raise HTTPException(status_code=401, detail="Invalid email or password")
+
+            # Check if user has a password (local auth) or is Google OAuth user
+            if user.get("auth_provider") == "google" and not user.get("password"):
+                raise HTTPException(status_code=401, detail="Please use Google login for this account")
+
+            if not user.get("password") or not pwd_context.verify(password, user["password"]):
                 raise HTTPException(status_code=401, detail="Invalid email or password")
             print("Password verified")
             
