@@ -1,6 +1,6 @@
 from fastapi import HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
-from src.config.env import env_config
+from config.env import env_config
 from jose import jwt, JWTError
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
