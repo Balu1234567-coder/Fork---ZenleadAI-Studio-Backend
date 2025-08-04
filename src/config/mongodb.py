@@ -18,17 +18,34 @@ class MongoDB:
         for attempt in range(1, retries + 1):
             try:
                 logger.info(f"Connection attempt {attempt}/{retries} to MongoDB with URI: {env_config.MONGO_URI[:30]}...")
-                cls.client = AsyncIOMotorClient(env_config.MONGO_URI, maxPoolSize=10, minPoolSize=1)
+                cls.client = AsyncIOMotorClient(
+                    env_config.MONGO_URI,
+                    maxPoolSize=10,
+                    minPoolSize=1,
+                    serverSelectionTimeoutMS=5000,  # 5 second timeout
+                    connectTimeoutMS=5000,          # 5 second connection timeout
+                    socketTimeoutMS=5000            # 5 second socket timeout
+                )
                 cls.db = cls.client[env_config.DATABASE_NAME]
-                await cls.db.command("ping")
+                # Test connection with timeout
+                await asyncio.wait_for(cls.db.command("ping"), timeout=5.0)
                 logger.info("MongoDB connected successfully")
                 return
+            except asyncio.TimeoutError:
+                logger.error(f"Attempt {attempt}/{retries} timed out after 5 seconds")
+                cls.db = None
+                cls.client = None
+                if attempt == retries:
+                    logger.warning("MongoDB connection failed - app will continue without database")
+                    return  # Don't raise exception, just continue
+                await asyncio.sleep(delay)
             except Exception as e:
                 logger.error(f"Attempt {attempt}/{retries} failed: {str(e)}")
                 cls.db = None
                 cls.client = None
                 if attempt == retries:
-                    raise Exception(f"Failed to connect to MongoDB after {retries} attempts: {str(e)}")
+                    logger.warning("MongoDB connection failed - app will continue without database")
+                    return  # Don't raise exception, just continue
                 await asyncio.sleep(delay)
 
     @classmethod
