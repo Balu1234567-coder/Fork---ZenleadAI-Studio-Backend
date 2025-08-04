@@ -13,6 +13,20 @@ import httpx
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# Initialize OAuth
+oauth = OAuth()
+
+if env_config.GOOGLE_CLIENT_ID and env_config.GOOGLE_CLIENT_SECRET:
+    oauth.register(
+        name='google',
+        client_id=env_config.GOOGLE_CLIENT_ID,
+        client_secret=env_config.GOOGLE_CLIENT_SECRET,
+        server_metadata_url='https://accounts.google.com/.well-known/openid_connect_configuration',
+        client_kwargs={
+            'scope': 'openid email profile'
+        }
+    )
+
 class AuthData(BaseModel):
     user: UserResponse
     access_token: str
