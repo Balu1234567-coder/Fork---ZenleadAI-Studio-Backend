@@ -14,6 +14,11 @@ class EnvConfig:
         self.JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
         self.JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 
+        # Google OAuth configuration
+        self.GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+        self.GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+        self.GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/google/callback")
+
         # Validate critical variables
         if not self.MONGO_URI:
             logger.error("MONGO_URI is not set")
@@ -21,9 +26,16 @@ class EnvConfig:
         if not self.JWT_SECRET_KEY:
             logger.error("JWT_SECRET_KEY is not set")
             raise ValueError("JWT_SECRET_KEY environment variable is required")
-        
+
+        # Google OAuth validation (warnings only)
+        if not self.GOOGLE_CLIENT_ID:
+            logger.warning("GOOGLE_CLIENT_ID is not set - Google OAuth will not work")
+        if not self.GOOGLE_CLIENT_SECRET:
+            logger.warning("GOOGLE_CLIENT_SECRET is not set - Google OAuth will not work")
+
         logger.info("Environment variables loaded successfully")
         logger.info(f"MONGO_URI (partial): {self.MONGO_URI[:30]}...")
         logger.info(f"DATABASE_NAME: {self.DATABASE_NAME}")
+        logger.info(f"Google OAuth configured: {bool(self.GOOGLE_CLIENT_ID and self.GOOGLE_CLIENT_SECRET)}")
 
 env_config = EnvConfig()
