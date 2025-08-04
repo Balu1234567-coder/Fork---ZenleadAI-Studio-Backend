@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from src.routes.auth_routes import router as auth_router
-from src.routes.user_routes import router as user_router
-from src.config.mongodb import MongoDB
+from routes.auth_routes import router as auth_router
+from routes.user_routes import router as user_router
+from config.mongodb import MongoDB
 import logging
 
 # Configure logging for Vercel
