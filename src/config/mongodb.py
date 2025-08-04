@@ -62,6 +62,7 @@ class MongoDB:
             logger.warning("Database not connected, attempting to connect")
             await cls.connect()
         if cls.db is None:
-            logger.error("Failed to connect to database")
-            raise Exception("Database not connected")
+            logger.error("Database not available - please check MongoDB connection")
+            from fastapi import HTTPException
+            raise HTTPException(status_code=503, detail="Database service unavailable")
         return cls.db[collection_name]
