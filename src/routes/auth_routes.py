@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from src.models.user import UserCreate
 from src.controllers.auth_controller import AuthController, AuthResponse
 from pydantic import BaseModel, EmailStr
@@ -16,3 +16,13 @@ async def register(user: UserCreate):
 @router.post("/login", response_model=AuthResponse)
 async def login(login_data: LoginRequest):
     return await AuthController.login(login_data.email, login_data.password)
+
+@router.get("/google/login")
+async def google_login(request: Request):
+    """Initiate Google OAuth login"""
+    return await AuthController.google_login(request)
+
+@router.get("/google/callback", response_model=AuthResponse)
+async def google_callback(request: Request):
+    """Handle Google OAuth callback"""
+    return await AuthController.google_callback(request)
