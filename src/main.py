@@ -18,10 +18,10 @@ async def startup_event():
     try:
         logger.info("Attempting to connect to MongoDB...")
         await MongoDB.connect()
-        logger.info("MongoDB connected successfully")
+        logger.info("Application startup completed")
     except Exception as e:
         logger.error(f"Failed to connect to MongoDB on startup: {str(e)}")
-        raise
+        logger.info("Application started without database connection")
 
 @app.on_event("shutdown")
 async def shutdown_event():
