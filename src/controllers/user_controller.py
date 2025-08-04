@@ -1,7 +1,7 @@
 from fastapi import HTTPException, Depends
-from src.models.user import UserResponse, UserUpdate
-from src.config.mongodb import MongoDB
-from src.middleware.auth import get_current_user
+from models.user import UserResponse, UserUpdate
+from config.mongodb import MongoDB
+from middleware.auth import get_current_user
 from pydantic import BaseModel
 
 class UserResponseData(BaseModel):

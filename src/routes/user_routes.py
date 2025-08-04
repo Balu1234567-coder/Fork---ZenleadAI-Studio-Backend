@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
-from src.controllers.user_controller import UserController, UserResponseModel, CreditsResponseModel
-from src.middleware.auth import get_current_user
-from src.models.user import UserUpdate
+from controllers.user_controller import UserController, UserResponseModel, CreditsResponseModel
+from middleware.auth import get_current_user
+from models.user import UserUpdate
 
 router = APIRouter(prefix="/user", tags=["user"])
 
