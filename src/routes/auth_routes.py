@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
-from src.models.user import UserCreate
-from src.controllers.auth_controller import AuthController, AuthResponse
+from models.user import UserCreate
+from controllers.auth_controller import AuthController, AuthResponse
 from pydantic import BaseModel, EmailStr
 
 class LoginRequest(BaseModel):
