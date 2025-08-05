@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
+from fastapi.responses import RedirectResponse
 from src.models.user import UserCreate
-from src.controllers.auth_controller import AuthController, AuthResponse
+from src.controllers.auth_controller import AuthController, AuthResponse, GoogleAuthUrlResponse
 from pydantic import BaseModel, EmailStr
 
 class LoginRequest(BaseModel):
@@ -16,3 +17,16 @@ async def register(user: UserCreate):
 @router.post("/login", response_model=AuthResponse)
 async def login(login_data: LoginRequest):
     return await AuthController.login(login_data.email, login_data.password)
+
+@router.get("/google", response_model=GoogleAuthUrlResponse)
+async def google_auth():
+    """Initiate Google OAuth flow by returning the authorization URL"""
+    return await AuthController.google_auth_url()
+
+@router.get("/google/callback", response_model=AuthResponse)
+async def google_callback(
+    code: str = Query(..., description="Authorization code from Google"),
+    state: str = Query(..., description="State parameter for CSRF protection")
+):
+    """Handle Google OAuth callback"""
+    return await AuthController.google_callback(code, state)
