@@ -49,6 +49,7 @@ class AuthController:
             
             user_dict = user_data.dict()
             user_dict["password"] = hashed_password
+            user_dict["auth_provider"] = "local"
             user_dict["credits"] = 150.0
             user_dict["created_at"] = datetime.utcnow()
             
