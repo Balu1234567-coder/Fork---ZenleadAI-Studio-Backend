@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from src.routes.auth_routes import router as auth_router
 from src.routes.user_routes import router as user_router
 from src.config.mongodb import MongoDB
@@ -10,6 +11,16 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="ZenleadAI-Studio Backend")
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Routers
 app.include_router(auth_router)
 app.include_router(user_router)
 
