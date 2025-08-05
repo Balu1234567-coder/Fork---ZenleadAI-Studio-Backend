@@ -31,6 +31,12 @@ class VerifyResponse(BaseModel):
     success: bool
     message: str
 
+class GoogleAuthUrlResponse(BaseModel):
+    status: int
+    success: bool
+    auth_url: str
+    state: str
+
 class AuthController:
     @staticmethod
     async def register(user_data: UserCreate) -> AuthResponse:
