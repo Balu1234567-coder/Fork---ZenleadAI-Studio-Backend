@@ -3,6 +3,8 @@ from src.models.user import UserResponse, UserUpdate
 from src.config.mongodb import MongoDB
 from src.middleware.auth import get_current_user
 from pydantic import BaseModel
+from bson import ObjectId
+from bson.errors import InvalidId
 
 class UserResponseData(BaseModel):
     user: UserResponse
@@ -29,11 +31,13 @@ class UserController:
         if userId != current_user:
             raise HTTPException(status_code=403, detail="Not authorized to access this user")
         
+        userId = ObjectId(userId)
         collection = await MongoDB.get_collection("users")  # Await get_collection
         user = await collection.find_one({"_id": userId})
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
+        user["_id"] = str(user["_id"])
         return UserResponseModel(
             status=200,
             success=True,
@@ -47,6 +51,7 @@ class UserController:
         if userId != current_user:
             raise HTTPException(status_code=403, detail="Not authorized to update this user")
         
+        userId = ObjectId(userId)
         collection = await MongoDB.get_collection("users")  # Await get_collection
         user = await collection.find_one({"_id": userId})
         if not user:
@@ -67,7 +72,7 @@ class UserController:
         
         # Fetch updated user
         updated_user = await collection.find_one({"_id": userId})
-        
+        updated_user["_id"] = str(updated_user["_id"])
         return UserResponseModel(
             status=200,
             success=True,
@@ -81,11 +86,13 @@ class UserController:
         if userId != current_user:
             raise HTTPException(status_code=403, detail="Not authorized to access this user's credits")
         
+        userId = ObjectId(userId)
         collection = await MongoDB.get_collection("users")  # Await get_collection
         user = await collection.find_one({"_id": userId}, {"credits": 1})  # Project only credits
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
+        user["_id"] = str(user["_id"])
         return CreditsResponseModel(
             status=200,
             success=True,
