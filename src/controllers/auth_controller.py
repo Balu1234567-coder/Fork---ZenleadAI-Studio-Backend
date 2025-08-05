@@ -1,5 +1,6 @@
 from fastapi import HTTPException, Depends
-from src.models.user import User, UserCreate, UserResponse
+from fastapi.responses import RedirectResponse
+from src.models.user import User, UserCreate, UserResponse, GoogleUserCreate
 from src.config.mongodb import MongoDB
 from src.config.env import env_config
 from passlib.context import CryptContext
@@ -7,6 +8,10 @@ from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from pydantic import BaseModel
 from src.middleware.auth import get_current_user, oauth2_scheme
+import httpx
+import urllib.parse
+import secrets
+import base64
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
