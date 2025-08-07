@@ -26,18 +26,40 @@ class CreditsResponseModel(BaseModel):
 
 class UserController:
     @staticmethod
+    def _prepare_user_data(user_doc: dict) -> dict:
+        """Prepare user data with backward compatibility"""
+        user_doc["_id"] = str(user_doc["_id"])
+        
+        # Handle backward compatibility for auth_provider
+        if "auth_provider" not in user_doc:
+            user_doc["auth_provider"] = "local"
+        
+        # Handle backward compatibility for google_id
+        if "google_id" not in user_doc:
+            user_doc["google_id"] = None
+            
+        return user_doc
+
+    @staticmethod
     async def get_user(userId: str, current_user: str = Depends(get_current_user)) -> UserResponseModel:
         # Optional: Restrict to own user data
         if userId != current_user:
             raise HTTPException(status_code=403, detail="Not authorized to access this user")
         
-        userId = ObjectId(userId)
-        collection = await MongoDB.get_collection("users")  # Await get_collection
-        user = await collection.find_one({"_id": userId})
+        try:
+            userId_obj = ObjectId(userId)
+        except InvalidId:
+            raise HTTPException(status_code=400, detail="Invalid user ID format")
+        
+        collection = await MongoDB.get_collection("users")
+        user = await collection.find_one({"_id": userId_obj})
+        
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        user["_id"] = str(user["_id"])
+        # Prepare user data with backward compatibility
+        user = UserController._prepare_user_data(user)
+        
         return UserResponseModel(
             status=200,
             success=True,
@@ -51,9 +73,14 @@ class UserController:
         if userId != current_user:
             raise HTTPException(status_code=403, detail="Not authorized to update this user")
         
-        userId = ObjectId(userId)
-        collection = await MongoDB.get_collection("users")  # Await get_collection
-        user = await collection.find_one({"_id": userId})
+        try:
+            userId_obj = ObjectId(userId)
+        except InvalidId:
+            raise HTTPException(status_code=400, detail="Invalid user ID format")
+        
+        collection = await MongoDB.get_collection("users")
+        user = await collection.find_one({"_id": userId_obj})
+        
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
@@ -68,11 +95,12 @@ class UserController:
             raise HTTPException(status_code=400, detail="No fields provided for update")
         
         # Update user in MongoDB
-        await collection.update_one({"_id": userId}, {"$set": update_data})
+        await collection.update_one({"_id": userId_obj}, {"$set": update_data})
         
         # Fetch updated user
-        updated_user = await collection.find_one({"_id": userId})
-        updated_user["_id"] = str(updated_user["_id"])
+        updated_user = await collection.find_one({"_id": userId_obj})
+        updated_user = UserController._prepare_user_data(updated_user)
+        
         return UserResponseModel(
             status=200,
             success=True,
@@ -86,13 +114,17 @@ class UserController:
         if userId != current_user:
             raise HTTPException(status_code=403, detail="Not authorized to access this user's credits")
         
-        userId = ObjectId(userId)
-        collection = await MongoDB.get_collection("users")  # Await get_collection
-        user = await collection.find_one({"_id": userId}, {"credits": 1})  # Project only credits
+        try:
+            userId_obj = ObjectId(userId)
+        except InvalidId:
+            raise HTTPException(status_code=400, detail="Invalid user ID format")
+        
+        collection = await MongoDB.get_collection("users")
+        user = await collection.find_one({"_id": userId_obj}, {"credits": 1})
+        
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        user["_id"] = str(user["_id"])
         return CreditsResponseModel(
             status=200,
             success=True,

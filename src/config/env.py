@@ -13,6 +13,11 @@ class EnvConfig:
         self.DATABASE_NAME = os.getenv("DATABASE_NAME", "zenleadai")
         self.JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
         self.JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+        self.SESSION_SECRET_KEY=os.getenv("SESSION_SECRET_KEY")
+        self.GOOGLE_CLIENT_ID=os.getenv("GOOGLE_CLIENT_ID")
+        self.GOOGLE_CLIENT_SECRET=os.getenv("GOOGLE_CLIENT_SECRET")
+        self.GOOGLE_REDIRECT_URI=os.getenv("GOOGLE_REDIRECT_URI")
+        self.FRONTEND_URI=os.getenv("FRONTEND_URI")
 
         # Validate critical variables
         if not self.MONGO_URI:
