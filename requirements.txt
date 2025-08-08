@@ -6,6 +6,7 @@ python-dotenv==1.0.1
 passlib[bcrypt]==1.7.4
 python-jose==3.3.0
 email-validator==2.2.0
+google-generativeai
 # Testing dependencies (uncomment when ready to add tests)
 # pytest==8.3.3
 # pytest-asyncio==0.24.0

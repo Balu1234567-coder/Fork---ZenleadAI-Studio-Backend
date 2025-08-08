@@ -27,8 +27,10 @@ class CreditsResponseModel(BaseModel):
 class UserController:
     @staticmethod
     def _prepare_user_data(user_doc: dict) -> dict:
-        """Prepare user data with backward compatibility"""
-        user_doc["_id"] = str(user_doc["_id"])
+        """Prepare user data with backward compatibility and proper _id conversion"""
+        # Convert ObjectId to string
+        if "_id" in user_doc and isinstance(user_doc["_id"], ObjectId):
+            user_doc["_id"] = str(user_doc["_id"])
         
         # Handle backward compatibility for auth_provider
         if "auth_provider" not in user_doc:
@@ -57,7 +59,7 @@ class UserController:
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Prepare user data with backward compatibility
+        # Prepare user data with backward compatibility and _id conversion
         user = UserController._prepare_user_data(user)
         
         return UserResponseModel(

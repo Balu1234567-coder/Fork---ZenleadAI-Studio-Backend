@@ -18,6 +18,9 @@ class EnvConfig:
         self.GOOGLE_CLIENT_SECRET=os.getenv("GOOGLE_CLIENT_SECRET")
         self.GOOGLE_REDIRECT_URI=os.getenv("GOOGLE_REDIRECT_URI")
         self.FRONTEND_URI=os.getenv("FRONTEND_URI")
+        self.GOOGLE_AI_STUDIO_API_KEY=os.getenv("GOOGLE_AI_STUDIO_API_KEY")
+        self.RAZORPAY_KEY_ID=os.getenv("RAZORPAY_KEY_ID")
+        self.RAZORPAY_KEY_SECRET=os.getenv("RAZORPAY_KEY_SECRET")
 
         # Validate critical variables
         if not self.MONGO_URI:
