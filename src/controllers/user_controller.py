@@ -28,9 +28,13 @@ class UserController:
     @staticmethod
     def _prepare_user_data(user_doc: dict) -> dict:
         """Prepare user data with backward compatibility and proper _id conversion"""
-        # Convert ObjectId to string
-        if "_id" in user_doc and isinstance(user_doc["_id"], ObjectId):
-            user_doc["_id"] = str(user_doc["_id"])
+        # Convert ObjectId to string if it's an ObjectId
+        if "_id" in user_doc:
+            if isinstance(user_doc["_id"], ObjectId):
+                user_doc["_id"] = str(user_doc["_id"])
+            else:
+                # Ensure it's a string (for cases like your string ID)
+                user_doc["_id"] = str(user_doc["_id"])
         
         # Handle backward compatibility for auth_provider
         if "auth_provider" not in user_doc:
@@ -43,18 +47,24 @@ class UserController:
         return user_doc
 
     @staticmethod
+    def _get_user_query(user_id: str) -> dict:
+        """Create MongoDB query for user ID (handles both string and ObjectId)"""
+        try:
+            # Try to convert to ObjectId first
+            return {"_id": ObjectId(user_id)}
+        except (InvalidId, ValueError):
+            # If it fails, use as string (for your case)
+            return {"_id": user_id}
+
+    @staticmethod
     async def get_user(userId: str, current_user: str = Depends(get_current_user)) -> UserResponseModel:
         # Optional: Restrict to own user data
         if userId != current_user:
             raise HTTPException(status_code=403, detail="Not authorized to access this user")
         
-        try:
-            userId_obj = ObjectId(userId)
-        except InvalidId:
-            raise HTTPException(status_code=400, detail="Invalid user ID format")
-        
         collection = await MongoDB.get_collection("users")
-        user = await collection.find_one({"_id": userId_obj})
+        user_query = UserController._get_user_query(userId)
+        user = await collection.find_one(user_query)
         
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
@@ -75,13 +85,9 @@ class UserController:
         if userId != current_user:
             raise HTTPException(status_code=403, detail="Not authorized to update this user")
         
-        try:
-            userId_obj = ObjectId(userId)
-        except InvalidId:
-            raise HTTPException(status_code=400, detail="Invalid user ID format")
-        
         collection = await MongoDB.get_collection("users")
-        user = await collection.find_one({"_id": userId_obj})
+        user_query = UserController._get_user_query(userId)
+        user = await collection.find_one(user_query)
         
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
@@ -97,10 +103,10 @@ class UserController:
             raise HTTPException(status_code=400, detail="No fields provided for update")
         
         # Update user in MongoDB
-        await collection.update_one({"_id": userId_obj}, {"$set": update_data})
+        await collection.update_one(user_query, {"$set": update_data})
         
         # Fetch updated user
-        updated_user = await collection.find_one({"_id": userId_obj})
+        updated_user = await collection.find_one(user_query)
         updated_user = UserController._prepare_user_data(updated_user)
         
         return UserResponseModel(
@@ -116,13 +122,9 @@ class UserController:
         if userId != current_user:
             raise HTTPException(status_code=403, detail="Not authorized to access this user's credits")
         
-        try:
-            userId_obj = ObjectId(userId)
-        except InvalidId:
-            raise HTTPException(status_code=400, detail="Invalid user ID format")
-        
         collection = await MongoDB.get_collection("users")
-        user = await collection.find_one({"_id": userId_obj}, {"credits": 1})
+        user_query = UserController._get_user_query(userId)
+        user = await collection.find_one(user_query, {"credits": 1})
         
         if not user:
             raise HTTPException(status_code=404, detail="User not found")

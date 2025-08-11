@@ -7,11 +7,11 @@ class User(BaseModel):
     firstName: str
     lastName: str
     email: EmailStr
-    password: Optional[str] = None  # Make password optional for Google users
+    password: Optional[str] = None
     credits: float = 150.0
-    created_at: datetime = datetime.utcnow()
-    auth_provider: str = "local"  # "local" or "google"
-    google_id: Optional[str] = None  # Store Google user ID
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    auth_provider: str = "local"
+    google_id: Optional[str] = None
 
 class UserCreate(BaseModel):
     firstName: str
@@ -26,7 +26,7 @@ class GoogleUserCreate(BaseModel):
     google_id: str
 
 class UserResponse(BaseModel):
-    uid: Optional[str] = Field(None, alias="_id")
+    uid: str = Field(alias="_id")  # Made required and string
     firstName: str
     lastName: str
     email: EmailStr

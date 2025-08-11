@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.routes.auth_routes import router as auth_router
 from src.routes.user_routes import router as user_router
 from src.routes.conversation_routes import router as conversation_router
-# from src.routes.payment_routes import router as payment_router
+from src.routes.payment_routes import router as payment_router
 from src.config.mongodb import MongoDB
 import logging
 
@@ -27,7 +27,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(conversation_router)
-# app.include_router(payment_router)
+app.include_router(payment_router)
 
 
 @app.on_event("startup")
