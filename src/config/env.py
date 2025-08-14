@@ -21,6 +21,8 @@ class EnvConfig:
         self.GOOGLE_AI_STUDIO_API_KEY=os.getenv("GOOGLE_AI_STUDIO_API_KEY")
         self.RAZORPAY_KEY_ID=os.getenv("RAZORPAY_KEY_ID")
         self.RAZORPAY_KEY_SECRET=os.getenv("RAZORPAY_KEY_SECRET")
+        self.IMAGE_RETRIEVE_CSE_ID=os.getenv("IMAGE_RETRIEVE_CSE_ID")
+        self.GOOGLE_SEARCH_API_KEY=os.getenv("GOOGLE_SEARCH_API_KEY")
 
         # Validate critical variables
         if not self.MONGO_URI:
