@@ -398,3 +398,148 @@ async def get_book_settings() -> Dict[str, Any]:
             
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@router.get(
+    "/long-form-book/project/{usage_id}",
+    response_model=Dict[str, Any],
+    summary="Get Book Project View",
+    description="Get comprehensive book project data for project page"
+)
+async def get_book_project_view(
+    usage_id: str,
+    current_user: str = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """Get book project data for frontend routing"""
+    try:
+        # Get usage detail
+        usage_detail = await controller.usage_controller.get_usage_detail(usage_id, current_user)
+        
+        # Prepare project view data
+        project_data = {
+            "usage_id": usage_id,
+            "project_type": "long-form-book",
+            "project_name": "Long Form Book Generation",
+            "status": usage_detail.status.value,
+            "created_at": usage_detail.created_at,
+            "started_at": usage_detail.started_at,
+            "completed_at": usage_detail.completed_at,
+            "credits_used": usage_detail.credits_used,
+            "error_message": usage_detail.error_message,
+            
+            # Book-specific data
+            "book_data": {
+                "title": usage_detail.input_data.get("book_title", "Untitled Book"),
+                "concept": usage_detail.input_data.get("concept", ""),
+                "genre": usage_detail.input_data.get("genre", ""),
+                "settings": usage_detail.input_data
+            },
+            
+            # Navigation capabilities
+            "navigation": {
+                "can_duplicate": usage_detail.status.value == "completed",
+                "can_cancel": usage_detail.status.value in ["pending", "processing"],
+                "can_download_pdf": usage_detail.status.value == "completed",
+                "can_view_chapters": usage_detail.status.value == "completed"
+            },
+            
+            # Status-specific data
+            "status_data": _get_book_status_data(usage_detail)
+        }
+        
+        return {
+            "status": 200,
+            "success": True,
+            "message": "Book project data retrieved successfully",
+            "data": project_data
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get book project: {str(e)}")
+
+def _get_book_status_data(usage_detail) -> Dict[str, Any]:
+    """Get book-specific status data"""
+    from src.models.ai_models.usage_history import UsageStatus
+    
+    if usage_detail.status == UsageStatus.PROCESSING:
+        return {
+            "type": "processing",
+            "can_stream": True,
+            "stream_endpoint": f"/api/ai/long-form-book/{usage_detail.uid}/status"
+        }
+    elif usage_detail.status == UsageStatus.COMPLETED:
+        output_data = usage_detail.output_data or {}
+        return {
+            "type": "completed",
+            "results": {
+                "book_metadata": output_data.get("book_metadata", {}),
+                "has_pdf": bool(output_data.get("pdf_base64")),
+                "chapter_count": len(output_data.get("complete_chapters", [])),
+                "total_words": output_data.get("total_words", 0),
+                "total_images": output_data.get("total_images", 0)
+            }
+        }
+    elif usage_detail.status == UsageStatus.FAILED:
+        return {
+            "type": "failed",
+            "error_message": usage_detail.error_message,
+            "can_retry": True
+        }
+    else:
+        return {"type": usage_detail.status.value}
+
+
+
+# Add to long_form_book_routes.py
+
+@router.get("/long-form-book/dashboard/real-time")
+async def get_real_time_dashboard(
+    current_user: str = Depends(get_current_user)
+):
+    """Get real-time dashboard data for active generations"""
+    try:
+        # Get processing projects
+        processing_data = await controller.usage_controller.get_user_usage_history(
+            user_id=current_user,
+            ai_model_slug="long-form-book",
+            status="processing",
+            limit=10
+        )
+        
+        return {
+            "status": 200,
+            "success": True,
+            "data": {
+                "active_generations": len(processing_data["usage_history"]),
+                "processing_projects": [
+                    {
+                        "usage_id": usage.uid,
+                        "title": usage.input_data.get("book_title", "Untitled"),
+                        "progress": "In Progress",
+                        "started_at": usage.started_at
+                    }
+                    for usage in processing_data["usage_history"]
+                ]
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/long-form-book/{usage_id}/heartbeat")
+async def heartbeat(
+    usage_id: str,
+    current_user: str = Depends(get_current_user)
+):
+    """Keep connection alive during generation"""
+    return {
+        "status": 200,
+        "success": True,
+        "data": {
+            "timestamp": datetime.utcnow().isoformat(),
+            "alive": True,
+            "usage_id": usage_id
+        }
+    }
